@@ -2,6 +2,11 @@
 
 ### Instalacion
 
+
+
+Clone o descarge el codigo.
+
+Despues ejcute:
 ```
 pip install -r requirements.txt
 ```
