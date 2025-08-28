@@ -4,6 +4,12 @@ import sys
 import re
 
 output_file = input("Nombre del archivo de salida: ")
+preserve_commas = input("Conservar comas en el nombre del producto? (s/n): ")
+if preserve_commas == "s":
+    preserve_commas = True
+else:
+    preserve_commas = False
+    print("se usara un | como separador de campos")
 
 app = QApplication(sys.argv)
 file, _ = QFileDialog.getOpenFileName(None, "Selecciona un archivo", "Archivos de datos (*.xlsx *.csv)")
@@ -35,23 +41,34 @@ with open(f"{output_file}.csv", "w") as f:
     f.write("NoVenta,Fecha,Sucursal,Producto,SKU,Cantidad,Descuento,SubtotalAntesImpuestos,Subtotal\n")
 print("Operando filas...")
 total_rows = file.active.max_row
+separator = "," if preserve_commas else "|"
 for row_index, row in enumerate(file.active.iter_rows(min_row=2, values_only=True)):
     print(f"Procesando fila {row_index+1} de {total_rows}", end="\r")
     #Handle Sale ID
     if row[0]:
         sale_index += 1
-        sale_date = row[0]
+        sale_date = row[0] 
         sale_branch = row[7]
-    sku = row[2]
-    description = row[1]
+    sku = row[2] if row[2] else ""
+    description = row[1] if row[1] else ""
     if sku:
         description = description.replace(f"[{sku}]", "")
-    quantity = row[3]
-    discount = row[4]
-    subtotal_before_tax = row[5]
-    subtotal = row[6]
+    
+    quantity = row[3] if row[3] else ""
+    discount = row[4] if row[4] else ""
+    subtotal_before_tax = row[5] if row[5] else ""
+    subtotal = row[6] if row[6] else ""
+    if not preserve_commas:
+        sale_branch = sale_branch.replace(f",", " ")
+        description = description.replace(f",", " ")
+        quantity = quantity.replace(f",", ".")
+        discount = discount.replace(f",", ".")
+        subtotal_before_tax = subtotal_before_tax.replace(f",", ".")
+        subtotal = subtotal.replace(f",", ".")
+    
+    
     with open(f"{output_file}.csv", "a") as f:
-        f.write(f"{sale_index},{sale_date},{sale_branch},{description},{sku},{quantity},{discount},{subtotal_before_tax},{subtotal}\n")
+        f.write(f"{sale_index}{separator}{sale_date}{separator}{sale_branch}{separator}{description}{separator}{sku}{separator}{quantity}{separator}{discount}{separator}{subtotal_before_tax}{separator}{subtotal}\n")
 
 print(f"Archivo terminado con exito, {output_file}.csv")
     
